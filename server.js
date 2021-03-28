@@ -8,19 +8,20 @@ const app= express()
 
 // connection DB
 connectDB()
-//Port
-const PORT=process.env.PORT
 
 //Midelleware global
 app.use(express.json())
 
-// routes
-
-app.use('/api/users',require('./routes/user'))
-
-
+// routes : Users & Post
+app.use('/api/users',require('./routes/user.routes'))
+app.use('/api/post' , require('./routes/post.routes'))
 
 
+
+
+//Port
+const PORT=process.env.PORT
+//create server
 app.listen(PORT,(err)=>{
     err? console.log('server is not running')
     :
