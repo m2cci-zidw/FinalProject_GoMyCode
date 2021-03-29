@@ -52,7 +52,7 @@ try {
             if(!err){
               return res.status(200).send({ msg: 'Post updated successfully ...', docs })
         }
-            console.log(isUpdated)
+            
         })
 } catch (error) {
     res.status(400).send({ errors:[{ msg: "Can not update the post !!", error }] })
@@ -63,26 +63,176 @@ try {
 
 
 /*************************************************************************plmmmmmmmmmmmmmmm with delete post */
-// delete post
-exports.deletePost = async(req, res) => {
+// // delete post
 
+exports.deletePost=async(req,res)=>{
     if (!ObjectID.isValid(req.params.id)){
-         return res.status(400).send("ID unknown : " + req.params.id);
+        return res.status(400).send("ID unknown : " + req.params.id);}
+
+        try {
+
+           const x= await postModel.findByIdAndRemove(req.params.id,(err,docs) =>{
+                          if(!err){
+                           return res.status(200).send({ msg: "post is deleted ..", docs })
+                           } else{
+                            return res.status(400).send({ msg: "post not deleted ..", err })
+                           }
+
+        }) }
+        catch (error) {
+            return res.status(400).send({ errors:[{ msg: "Can not delete the post !"}] })
+            
         }
-  try {
-      
-      await postModel.findByIdAndRemove(req.params.id,(err,docs) =>{
-           if(!err){
-           return res.status(200).send({ msg: "post is deleted ..",docs })
-           }
-       }
-    )
-  } catch (error) {
-    res.status(400).send({ errors:[{ msg: "Can not delete the post !", error }] })
 
-  }
+}
+/****************************************like post ************************/
 
+
+exports.likePost = async (req, res) => {
+    if (!ObjectID.isValid(req.params.id))
+      return res.status(400).send("ID unknown : " + req.params.id);
+  
+    try {
+      await postModel.findByIdAndUpdate(
+        {_id:req.params.id},
+        {
+          $addToSet: { likers: req.body.id },
+        },
+        { new: true },
+        (err, docs) => {
+          if (err) return res.status(400).send({ errors:[{ msg: "Can not like this post 1!!!"}] })
+        }
+      );
+      await User.findByIdAndUpdate(
+        {_id:req.body.id},
+        {
+          $addToSet: { likes: req.params.id },
+        },
+        { new: true },
+        (err, docs) => {
+          if (!err) res.status(200).send({ msg: "post is liked ..", docs })
+          else return res.status(400).send({ errors:[{ msg: "Can not like this post 2!!!"}] })
+        }
+      );
+    } catch (err) {
+      return res.status(400).send({ errors:[{ msg: "Can not like this post 3!!!"}] })
+    }
   };
+  
+
+/****************************************unlike post ************************/
+
+
+exports.unlikePost = async (req, res) => {
+    if (!ObjectID.isValid(req.params.id))
+      return res.status(400).send("ID unknown : " + req.params.id);
+  
+    try {
+      await postModel.findByIdAndUpdate(
+        {_id:req.params.id},
+        {
+          $pull: { likers: req.body.id },
+        },
+        { new: true },
+        (err, docs) => {
+          if (err) return res.status(400).send({ errors:[{ msg: "Can not like this post 1!!!"}] })
+        }
+      );
+      await User.findByIdAndUpdate(
+        {_id:req.body.id},
+        {
+          $pull: { likes: req.params.id },
+        },
+        { new: true },
+        (err, docs) => {
+          if (!err) res.status(200).send({ msg: "post is liked ..", docs })
+          else return res.status(400).send({ errors:[{ msg: "Can not like this post 2!!!"}] })
+        }
+      );
+    } catch (err) {
+      return res.status(400).send({ errors:[{ msg: "Can not like this post 3!!!"}] })
+    }
+  };
+
+
+//   ************************************* Add comment*****************************************
+exports.commentPost = (req, res) => {
+    if (!ObjectID.isValid(req.params.id))
+      return res.status(400).send("ID unknown : " + req.params.id);
+  
+    try {
+      return  postModel.findByIdAndUpdate(
+        {_id:req.params.id},
+        {
+          $push: {
+            comments: {
+              commenterId: req.body.commenterId,
+              commenterName: req.body.commenterName,
+              text: req.body.text,
+              timestamp: new Date().getTime(),
+            },
+          },
+        },
+        { new: true },
+        (err, docs) => {
+          if (!err) return res.status(200).send({ msg: "Comment is added ..", docs })
+          else return res.status(400).send({ errors:[{ msg: "Can not comment this post!!!"}] })
+        }
+      );
+    } catch (err) {
+      return res.status(400).send({ errors:[{ msg: "Can not comment this post, try again!!!"}] })
+    }
+  };
+//   ************************************* Edit comment*****************************************
+
+  exports.editCommentPost = async(req, res) => {
+    if (!ObjectID.isValid(req.params.id))
+      return res.status(400).send("ID unknown : " + req.params.id);
+  
+    try {
+      return await postModel.findById(req.params.id, (err, docs) => {
+        const theComment = docs.comments.find((comment) =>
+          comment._id.equals(req.body.commentId)
+        );
+  
+        if (!theComment) return res.status(404).send({ errors:[{ msg: "Can not edit this comment , try again!!!"}] });
+        theComment.text = req.body.text;
+  
+        return docs.save((err) => {
+          if (!err) return res.status(200).send({ msg: "Comment is updated..", docs });
+          return res.status(400).send({ errors:[{ msg: "Can not edit this comment , try again!!!"}] });
+        });
+      });
+    } catch (err) {
+      return res.status(400).send({ errors:[{ msg: "Can not edit this comment, try again!!!"}] });
+    }
+  };
+  
+  exports.deleteCommentPost =async (req, res) => {
+    if (!ObjectID.isValid(req.params.id))
+      return res.status(400).send("ID unknown : " + req.params.id);
+  
+    try {
+      return await postModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $pull: {
+            comments: {
+              _id: req.body.commentId,
+            },
+          },
+        },
+        { new: true },
+        (err, docs) => {
+          if (!err) return res.status(200).send({ msg: "Comment is deleted ...", docs });
+          else return res.status(404).send({ errors:[{ msg: "Can not delete this comment , try again!!!"}] });
+        }
+      );
+    } catch (err) {
+      return res.status(404).send({ errors:[{ msg: "Can not delete this comment , try again!!!"}] });
+    }
+  };
+  
   
 
 
@@ -103,10 +253,3 @@ exports.deletePost = async(req, res) => {
 
 
 
-
-
-exports.deletePost =async(req,res)=>{
-    if ( !ObjectID.isValid(req.params.id)){
-        return res.status(400).send({ errors:[{ msg:"ID unknown : " + req.params.id}] })
-       }
-}

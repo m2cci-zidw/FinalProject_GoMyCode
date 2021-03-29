@@ -69,7 +69,7 @@ exports.deleteUser=async(req,res)=>{
     }
         try {
             const userToDelete= await User.findOneAndDelete({_id:req.params.id})
-            if (!contactToDelete){
+            if (!userToDelete){
                 res.status(400).send({errors:[{msg:"Contact already deleted"}]})
                 return
             } 

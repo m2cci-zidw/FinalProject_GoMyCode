@@ -1,5 +1,8 @@
 const express=require('express')
 const router=express.Router();
+const { uploadProfil } = require('../controllers/upload.controlleurs');
+const multer=require('multer')
+const upload=multer()
 
 const{signIn,signUp}=require('../controllers/auth.controlleurs');
 // (signUp & signIN FN) =>auth.controlleurs
@@ -35,7 +38,8 @@ router.patch('/follow/:id',follow)
 router.patch('/unfollow/:id',unfollow)
 
 
-
+//********************upload Image******************* */
+router.post('/upload',upload.single('file'),uploadProfil)
 
 
 module.exports = router
