@@ -4,12 +4,16 @@
   "description": "projet validation de formation",
   "main": "server.js",
   "scripts": {
-    "back": "nodemon server.js"
+    "back": "nodemon server",
+    "front": "cd client && npm start",
+    "dev": "concurrently \"npm run front\" \"npm run back\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "bootstrap": "^4.6.0",
+    "bootstrap-react": "^0.5.0-alpha.14",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
@@ -17,5 +21,8 @@
     "mongoose": "^5.12.2",
     "multer": "^1.4.2",
     "nodemon": "^2.0.7"
+  },
+  "devDependencies": {
+    "concurrently": "^6.0.0"
   }
 }
