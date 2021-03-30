@@ -1,10 +1,22 @@
 //require 
 const express= require('express')
+const cors = require('cors');
 require("dotenv").config()
 const connectDB= require('./config/connectDB')
 
 //instance express
 const app= express()
+
+
+const corsOptions = {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    'allowedHeaders': ['sessionId', 'Content-Type'],
+    'exposedHeaders': ['sessionId'],
+    'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    'preflightContinue': false
+  }
+  app.use(cors(corsOptions));
 
 // connection DB
 connectDB()
