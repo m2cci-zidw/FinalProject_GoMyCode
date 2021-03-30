@@ -2,7 +2,8 @@ const express=require('express')
 const router=express.Router();
 const {getPost,createPost,updatePost, deletePost, likePost, unlikePost, commentPost, editCommentPost, deleteCommentPost}= require('../controllers/post.controlleurs');
 
-
+const multer=require('multer')
+const upload=multer()
 
 
 
@@ -10,7 +11,7 @@ const {getPost,createPost,updatePost, deletePost, likePost, unlikePost, commentP
 
 /***********POST CRUD************ */
 router.get('/', getPost )
-router.post('/', createPost )
+router.post('/'  ,upload.single('file'), createPost )
 router.put('/:id', updatePost)
 router.delete('/:id', deletePost)
 router.patch('/like-post/:id', likePost)

@@ -14,13 +14,15 @@ exports.uploadProfil= async(req,res)=>{
       req.file.detectedMimeType != "image/png" &&
       req.file.detectedMimeType != "image/jpeg"
     )
-    throw Error("invalid file");
-    // { res.status(400).send({errors:[{msg:"invalid file"}]})}
+    
+    { return res.status(400).send({errors:[{msg:"invalid file"}]})}
 
-    if (req.file.size > 500000) throw Error("max size");
-    // {res.status(400).send({errors:[{msg:"we can't use this picture, max size"}]})} 
+    if (req.file.size > 500000)
+    
+    { return res.status(400).send({errors:[{msg:"we can't use this picture, max size"}]})} 
   } catch (err) {
-    return res.status(400).send({errors:[{msg:"we can't add the picture!!!!"}]})
+      
+    return res.status(400).send({errors:[{msg:"we can't add the picture!!!!"}]},err)
 
   }
   const fileName= req.body.name + ".jpg";
@@ -38,11 +40,12 @@ exports.uploadProfil= async(req,res)=>{
       { $set : {picture: "./uploads/profil/" + fileName}},
       { new: true, upsert: true, setDefaultsOnInsert: true},
       (err, docs) => {
-        if (!err) return es.status(200).send({ msg: "image is added ..", docs });
+        if (!err) return res.status(200).send({ msg: "image is added ..", docs });
         else return res.status(400).send({errors:[{msg:"we can't add the picture!!!!"}]});
       }
     );
   } catch (err) {
+      console.log(err)
     return res.status(400).send({errors:[{msg:"we can't add the picture!!!!"}]});
   }
 };
