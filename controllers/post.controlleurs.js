@@ -2,7 +2,11 @@ const postModel =require('../models/Post.model')
 const User = require('../models/User.model')
 const ObjectID = require("mongoose").Types.ObjectId;
 
+const fs = require("fs");
+const { promisify } = require("util");
+const pipeline = promisify(require("stream").pipeline);
 
+//***************************get post*********************************** */
 exports.getPost =async(req,res)=>{
     
 try {
@@ -13,12 +17,45 @@ try {
     
 }
 }
-
+//*******************create post************************************ */
 exports.createPost =async(req,res)=>{
+    let fileName;
+    if(req.file!=null){
+        try {
+      
+            if (
+              req.file.detectedMimeType != "image/jpg" &&
+              req.file.detectedMimeType != "image/png" &&
+              req.file.detectedMimeType != "image/jpeg"
+            )
+            
+            { return res.status(400).send({errors:[{msg:"invalid file"}]})}
+        
+            if (req.file.size > 500000)
+            
+            { return res.status(400).send({errors:[{msg:"we can't use this picture, max size"}]})} 
+          } catch (err) {
+              
+            return res.status(400).send({errors:[{msg:"we can't add the picture!!!!"}]},err)
+        
+          }
+           fileName= req.body.posterId +Date.now()+'.jpg';
+           await pipeline(
+            req.file.stream,
+            fs.createWriteStream(
+              `${__dirname}/../client/public/uploads/posts/${fileName}`
+            )
+          );
+    }
+
+
+
+
 
     const newPost = new postModel({
         posterId: req.body.posterId,
         message : req.body.message,
+        picture: req.file !== null ? "./uploads/posts/" + fileName : "",
         video   : req.body.video,
         likers  : [],
         comments: []
@@ -33,7 +70,7 @@ exports.createPost =async(req,res)=>{
     }
 }
 
-//update-Post
+//********************************update-Post********************************************
 exports.updatePost =async(req,res)=>{
     if ( !ObjectID.isValid(req.params.id)){
         return res.status(400).send({ errors:[{ msg:"ID unknown : " + req.params.id}] })
@@ -62,8 +99,20 @@ try {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /*************************************************************************plmmmmmmmmmmmmmmm with delete post */
-// // delete post
+// // ****************************************delete post*********************************************
 
 exports.deletePost=async(req,res)=>{
     if (!ObjectID.isValid(req.params.id)){
@@ -85,7 +134,7 @@ exports.deletePost=async(req,res)=>{
         }
 
 }
-/****************************************like post ************************/
+/****************************************like post ******************************************/
 
 
 exports.likePost = async (req, res) => {
